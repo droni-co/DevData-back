@@ -146,4 +146,4 @@ Para contribuir al proyecto, por favor siga estos pasos:
 
 ## Licencia
 
-Este proyecto está licenciado bajo la licencia [UNLICENSED] - vea el archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está licenciado bajo la licencia GPL (GNU General Public License).
