@@ -13,15 +13,20 @@ export default class ReposController {
     const q = request.input('q', '')
     const project = request.input('project', '')
     const qPackage = request.input('qPackage', '')
+    const isApi = request.input('isApi', '')
     const query = Repo.query()
     if (project) {
       query.where('project_name', project)
+    }
+    if (isApi === 'true') {
+      query.where('is_api', true)
+    } else if (isApi === 'false') {
+      query.where('is_api', false)
     }
     if (q) {
       query.where((subquery) =>
         subquery
           .whereILike('name', `%${q}%`)
-          .orWhereILike('project_name', `%${q}%`)
           .orWhereILike('appservice', `%${q}%`)
           .orWhereILike('pipeline', `%${q}%`)
       )
@@ -84,9 +89,14 @@ export default class ReposController {
     for await (const chunk of filePipeline) {
       contentPipeline += chunk.toString()
     }
+    // si el contentPackage no contiene el string 'could not be found in the repository' no es un contentPackage
     const jsonContent = JSON.parse(contentPackage)
-    repo.package = JSON.stringify(jsonContent)
-    repo.pipeline = contentPipeline
+    repo.package = contentPackage.includes('could not be found in the repository')
+      ? null
+      : JSON.stringify(jsonContent)
+    // si pipeline contiene el string 'innerException' no es un pipeline
+    repo.pipeline = contentPipeline.includes('innerException') ? '' : contentPipeline
+
     const appServices = contentPipeline.match(/appServiceName:\s*(\S+)/)
     repo.appservice = appServices ? appServices[1].replaceAll("'", '') : ''
     await repo.save()
