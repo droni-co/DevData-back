@@ -7,8 +7,29 @@ export default class ReposController {
   /**
    * Display a list of resource
    */
-  async index({}: HttpContext) {
-    const repos = await Repo.all()
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perPage = request.input('perPage', 20)
+    const q = request.input('q', '')
+    const project = request.input('project', '')
+    const qPackage = request.input('qPackage', '')
+    const query = Repo.query()
+    if (project) {
+      query.where('project_name', project)
+    }
+    if (q) {
+      query.where((subquery) =>
+        subquery
+          .whereILike('name', `%${q}%`)
+          .orWhereILike('project_name', `%${q}%`)
+          .orWhereILike('appservice', `%${q}%`)
+          .orWhereILike('pipeline', `%${q}%`)
+      )
+    }
+    if (qPackage) {
+      query.whereILike('package', `%${qPackage}%`)
+    }
+    const repos = await query.paginate(page, perPage)
     return repos
   }
 
