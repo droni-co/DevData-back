@@ -19,6 +19,7 @@ export default class CommitsController {
     const repositoryId = request.input('repositoryId', '')
     const projectId = request.input('projectId', '')
     const authorEmail = request.input('authorEmail', '')
+    const committerEmail = request.input('committerEmail', '')
     const query = Commit.query()
     if (repositoryId) {
       query.where('repository_id', repositoryId)
@@ -28,6 +29,9 @@ export default class CommitsController {
     }
     if (authorEmail) {
       query.where('author_email', authorEmail)
+    }
+    if (committerEmail) {
+      query.where('committer_email', committerEmail)
     }
     if (q) {
       query.where((subquery) => {
@@ -48,7 +52,9 @@ export default class CommitsController {
     const allCommits: Commit[] = []
     const projectId = params.id
 
-    const minTime = request.input('minTime', '2023-01-01T00:00:00Z')
+    // Calcular fecha por defecto: hoy menos 30 días
+    const defaultMinTime = DateTime.now().minus({ days: 30 }).toISO()
+    const minTime = request.input('minTime', defaultMinTime)
     const repo = await Repo.findOrFail(projectId)
 
     const azureApiService = await AzureApiService.connection()
@@ -64,7 +70,6 @@ export default class CommitsController {
     }
 
     const commits = await gitApi.getCommits(repo.id, criteria)
-    console.log('commits', commits)
 
     if (commits && commits.length > 0) {
       // Buscar los ya existentes para evitar duplicados
@@ -126,5 +131,25 @@ export default class CommitsController {
     }
 
     return { allCommits }
+  }
+
+  /**
+   * Get unique projectName, authorEmail, and committerEmail
+   */
+  async filters({}: HttpContext) {
+    const projects = await Commit.query().distinct('projectName').select('projectName')
+    const authors = await Commit.query().distinct('authorEmail').select('authorEmail')
+    const committers = await Commit.query().distinct('committerEmail').select('committerEmail')
+    return {
+      projectName: projects
+        .map((row) => row.projectName)
+        .filter((name: string | null | undefined): name is string => !!name),
+      authorEmail: authors
+        .map((row) => row.authorEmail)
+        .filter((email: string | null | undefined): email is string => !!email),
+      committerEmail: committers
+        .map((row) => row.committerEmail)
+        .filter((email: string | null | undefined): email is string => !!email),
+    }
   }
 }

@@ -102,4 +102,16 @@ export default class ReposController {
     await repo.save()
     return repo
   }
+
+  /**
+   * Get unique project names
+   */
+  async filters({}: HttpContext) {
+    const projects = await Repo.query().distinct('projectName').select('projectName')
+    return {
+      projectName: projects
+        .map((row) => row.projectName)
+        .filter((name: string | null | undefined): name is string => !!name),
+    }
+  }
 }

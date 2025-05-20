@@ -20,9 +20,11 @@ router.get('/', async () => {
 
 router.get('/repos/import', [ReposController, 'import'])
 router.get('/repos/import/:id', [ReposController, 'importDetails'])
-router.resource('repos', ReposController).apiOnly()
+router.get('/repos/filters', [ReposController, 'filters'])
+router.get('/repos', [ReposController, 'index'])
 router.get('/secrets/import/:id', [SecretsController, 'importDetails'])
 router.get('/secrets/import', [SecretsController, 'import'])
 router.resource('secrets', SecretsController).apiOnly()
 router.get('/commits/import/:id', [CommitsController, 'import'])
-router.resource('commits', CommitsController).apiOnly()
+router.get('/commits/filters', [CommitsController, 'filters'])
+router.get('/commits', [CommitsController, 'index'])
