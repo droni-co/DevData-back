@@ -17,7 +17,11 @@ export default class PullrequestsController {
     const q = request.input('q', '')
     const repositoryId = request.input('repositoryId', '')
     const projectId = request.input('projectId', '')
+    const creatorName = request.input('creatorName', '')
+    const sourceRefName = request.input('sourceRefName', '')
     const targetRefName = request.input('targetRefName', '')
+    const status = request.input('status', '')
+    const mergeStatus = request.input('mergeStatus', '')
     const query = PullRequest.query()
     if (repositoryId) {
       query.where('repository_id', repositoryId)
@@ -25,8 +29,20 @@ export default class PullrequestsController {
     if (projectId) {
       query.where('project_id', projectId)
     }
+    if (creatorName) {
+      query.where('creator_name', creatorName)
+    }
+    if (sourceRefName) {
+      query.where('source_ref_name', sourceRefName)
+    }
     if (targetRefName) {
       query.where('target_ref_name', targetRefName)
+    }
+    if (status) {
+      query.where('status', status)
+    }
+    if (mergeStatus) {
+      query.where('merge_status', mergeStatus)
     }
     if (q) {
       query.where((subquery) => {
@@ -114,27 +130,42 @@ export default class PullrequestsController {
    * Display a list of filters
    */
   async filters({}: HttpContext) {
-    const creators = await PullRequest.query().distinct('creatorName').select('creatorName')
+    const creators = await PullRequest.query()
+      .distinct('creatorName')
+      .select('creatorName')
+      .orderBy('creatorName', 'asc')
     const repos = await PullRequest.query()
       .distinct('repositoryName', 'repositoryId')
       .select('repositoryName', 'repositoryId')
+      .orderBy('repositoryName', 'asc')
     const projects = await PullRequest.query()
       .distinct('projectName', 'projectId')
       .select('projectName', 'projectId')
-    const sources = await PullRequest.query().distinct('sourceRefName').select('sourceRefName')
-    const targets = await PullRequest.query().distinct('targetRefName').select('targetRefName')
-    const statuses = await PullRequest.query().distinct('status').select('status')
-    const merges = await PullRequest.query().distinct('mergeStatus').select('mergeStatus')
+      .orderBy('projectName', 'asc')
+    const sources = await PullRequest.query()
+      .distinct('sourceRefName')
+      .select('sourceRefName')
+      .orderBy('sourceRefName', 'asc')
+    const targets = await PullRequest.query()
+      .distinct('targetRefName')
+      .select('targetRefName')
+      .orderBy('targetRefName', 'asc')
+    const statuses = await PullRequest.query()
+      .distinct('status')
+      .select('status')
+      .orderBy('status', 'asc')
+    const mergeStatus = await PullRequest.query()
+      .distinct('mergeStatus')
+      .select('mergeStatus')
+      .orderBy('mergeStatus', 'asc')
     return {
-      creatorName: creators,
-      repositoryName: repos,
-      projectName: projects,
-      sourceRefName: sources,
-      targetRefName: targets,
-      status: statuses,
-      mergeStatus: merges
-        .map((row) => row.mergeStatus)
-        .filter((v) => v !== undefined && v !== null),
+      creators,
+      repositories: repos,
+      projects,
+      sources,
+      targets,
+      statuses,
+      mergeStatus,
     }
   }
 }

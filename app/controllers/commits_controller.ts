@@ -136,10 +136,14 @@ export default class CommitsController {
     const projects = await Commit.query()
       .distinct('projectName', 'projectId')
       .select('projectName', 'projectId')
-    const authors = await Commit.query().distinct('authorEmail').select('authorEmail')
+      .orderBy('projectName')
+    const authors = await Commit.query()
+      .distinct('authorName', 'authorEmail')
+      .select('authorName', 'authorEmail')
+      .orderBy('authorName')
     return {
-      projectName: projects,
-      authorEmail: authors,
+      projects,
+      authors,
     }
   }
 }

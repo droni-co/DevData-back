@@ -117,8 +117,9 @@ export default class ReposController {
     const projects = await Repo.query()
       .distinct('projectName', 'projectId')
       .select('projectName', 'projectId')
+      .orderBy('projectName', 'asc')
     return {
-      projectName: projects,
+      projects,
     }
   }
 }
