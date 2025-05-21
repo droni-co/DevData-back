@@ -17,12 +17,16 @@ export default class PullrequestsController {
     const q = request.input('q', '')
     const repositoryId = request.input('repositoryId', '')
     const projectId = request.input('projectId', '')
+    const targetRefName = request.input('targetRefName', '')
     const query = PullRequest.query()
     if (repositoryId) {
       query.where('repository_id', repositoryId)
     }
     if (projectId) {
       query.where('project_id', projectId)
+    }
+    if (targetRefName) {
+      query.where('target_ref_name', targetRefName)
     }
     if (q) {
       query.where((subquery) => {
@@ -111,19 +115,23 @@ export default class PullrequestsController {
    */
   async filters({}: HttpContext) {
     const creators = await PullRequest.query().distinct('creatorName').select('creatorName')
-    const repos = await PullRequest.query().distinct('repositoryName').select('repositoryName')
-    const projects = await PullRequest.query().distinct('projectName').select('projectName')
+    const repos = await PullRequest.query()
+      .distinct('repositoryName', 'repositoryId')
+      .select('repositoryName', 'repositoryId')
+    const projects = await PullRequest.query()
+      .distinct('projectName', 'projectId')
+      .select('projectName', 'projectId')
     const sources = await PullRequest.query().distinct('sourceRefName').select('sourceRefName')
     const targets = await PullRequest.query().distinct('targetRefName').select('targetRefName')
     const statuses = await PullRequest.query().distinct('status').select('status')
     const merges = await PullRequest.query().distinct('mergeStatus').select('mergeStatus')
     return {
-      creatorName: creators.map((row) => row.creatorName).filter((v) => !!v),
-      repositoryName: repos.map((row) => row.repositoryName).filter((v) => !!v),
-      projectName: projects.map((row) => row.projectName).filter((v) => !!v),
-      sourceRefName: sources.map((row) => row.sourceRefName).filter((v) => !!v),
-      targetRefName: targets.map((row) => row.targetRefName).filter((v) => !!v),
-      status: statuses.map((row) => row.status).filter((v) => v !== undefined && v !== null),
+      creatorName: creators,
+      repositoryName: repos,
+      projectName: projects,
+      sourceRefName: sources,
+      targetRefName: targets,
+      status: statuses,
       mergeStatus: merges
         .map((row) => row.mergeStatus)
         .filter((v) => v !== undefined && v !== null),

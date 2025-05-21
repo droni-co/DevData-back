@@ -11,22 +11,29 @@ export default class ReposController {
     const page = request.input('page', 1)
     const perPage = request.input('perPage', 20)
     const q = request.input('q', '')
-    const project = request.input('project', '')
+    const projectId = request.input('projectId', '')
     const qPackage = request.input('qPackage', '')
     const isApi = request.input('isApi', '')
+    const isExp = request.input('isExp', '')
     const query = Repo.query()
-    if (project) {
-      query.where('project_name', project)
+    if (projectId) {
+      query.where('project_id', projectId)
     }
     if (isApi === 'true') {
       query.where('is_api', true)
     } else if (isApi === 'false') {
       query.where('is_api', false)
     }
+    if (isExp === 'true') {
+      query.where('is_exp', true)
+    } else if (isExp === 'false') {
+      query.where('is_exp', false)
+    }
     if (q) {
       query.where((subquery) =>
         subquery
           .whereILike('name', `%${q}%`)
+          .orWhereILike('project_name', `%${q}%`)
           .orWhereILike('appservice', `%${q}%`)
           .orWhereILike('pipeline', `%${q}%`)
       )
@@ -107,11 +114,11 @@ export default class ReposController {
    * Get unique project names
    */
   async filters({}: HttpContext) {
-    const projects = await Repo.query().distinct('projectName').select('projectName')
+    const projects = await Repo.query()
+      .distinct('projectName', 'projectId')
+      .select('projectName', 'projectId')
     return {
-      projectName: projects
-        .map((row) => row.projectName)
-        .filter((name: string | null | undefined): name is string => !!name),
+      projectName: projects,
     }
   }
 }

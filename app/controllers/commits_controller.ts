@@ -19,7 +19,6 @@ export default class CommitsController {
     const repositoryId = request.input('repositoryId', '')
     const projectId = request.input('projectId', '')
     const authorEmail = request.input('authorEmail', '')
-    const committerEmail = request.input('committerEmail', '')
     const query = Commit.query()
     if (repositoryId) {
       query.where('repository_id', repositoryId)
@@ -29,9 +28,6 @@ export default class CommitsController {
     }
     if (authorEmail) {
       query.where('author_email', authorEmail)
-    }
-    if (committerEmail) {
-      query.where('committer_email', committerEmail)
     }
     if (q) {
       query.where((subquery) => {
@@ -137,19 +133,13 @@ export default class CommitsController {
    * Get unique projectName, authorEmail, and committerEmail
    */
   async filters({}: HttpContext) {
-    const projects = await Commit.query().distinct('projectName').select('projectName')
+    const projects = await Commit.query()
+      .distinct('projectName', 'projectId')
+      .select('projectName', 'projectId')
     const authors = await Commit.query().distinct('authorEmail').select('authorEmail')
-    const committers = await Commit.query().distinct('committerEmail').select('committerEmail')
     return {
-      projectName: projects
-        .map((row) => row.projectName)
-        .filter((name: string | null | undefined): name is string => !!name),
-      authorEmail: authors
-        .map((row) => row.authorEmail)
-        .filter((email: string | null | undefined): email is string => !!email),
-      committerEmail: committers
-        .map((row) => row.committerEmail)
-        .filter((email: string | null | undefined): email is string => !!email),
+      projectName: projects,
+      authorEmail: authors,
     }
   }
 }
