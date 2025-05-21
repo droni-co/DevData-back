@@ -12,6 +12,7 @@ const ReposController = () => import('#controllers/repos_controller')
 const SecretsController = () => import('#controllers/secrets_controller')
 const CommitsController = () => import('#controllers/commits_controller')
 const PullRequestsController = () => import('#controllers/pullrequests_controller')
+const SonarsController = () => import('#controllers/sonars_controller')
 
 router.get('/', async () => {
   return {
@@ -32,3 +33,6 @@ router.get('/commits', [CommitsController, 'index'])
 router.get('/pullrequests/import/:id', [PullRequestsController, 'import'])
 router.get('/pullrequests/filters', [PullRequestsController, 'filters'])
 router.get('/pullrequests', [PullRequestsController, 'index'])
+router.get('/sonars/import', [SonarsController, 'import'])
+router.get('/sonars/filters', [SonarsController, 'filters'])
+router.get('/sonars', [SonarsController, 'index'])
