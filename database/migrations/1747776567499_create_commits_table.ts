@@ -8,6 +8,7 @@ export default class extends BaseSchema {
       table.increments('id')
       table.uuid('org_id').notNullable().references('id').inTable('orgs').onDelete('CASCADE')
       table.string('commit_id', 40).notNullable()
+      table.unique(['commit_id', 'org_id'])
       table.uuid('repository_id').notNullable()
       table.string('repository_name', 500).notNullable()
       table.uuid('project_id').notNullable()

@@ -6,12 +6,14 @@ import {
   PullRequestStatus,
 } from 'azure-devops-node-api/interfaces/GitInterfaces.js'
 import { DateTime } from 'luxon'
+import Org from '#models/org'
 
 export default class PullrequestsController {
   /**
    * Display a list of resource
    */
-  async index({ request }: HttpContext) {
+  async index({ request, auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const page = request.input('page', 1)
     const perPage = request.input('perPage', 20)
     const q = request.input('q', '')
@@ -22,7 +24,7 @@ export default class PullrequestsController {
     const targetRefName = request.input('targetRefName', '')
     const status = request.input('status', '')
     const mergeStatus = request.input('mergeStatus', '')
-    const query = PullRequest.query()
+    const query = PullRequest.query().where('orgId', org.id)
     if (repositoryId) {
       query.where('repository_id', repositoryId)
     }
@@ -55,10 +57,11 @@ export default class PullrequestsController {
   /**
    * Import all resources
    */
-  async import({ params, request }: HttpContext) {
+  async import({ params, request, auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const allPRS: PullRequest[] = []
     const projectId = params.id
-    const azureApiService = await AzureApiService.connection()
+    const azureApiService = await AzureApiService.connection(org)
     const gitApi = await azureApiService.getGitApi()
 
     const defaultMinTime = DateTime.now().minus({ days: 30 }).toISO()
@@ -83,10 +86,12 @@ export default class PullrequestsController {
     for (const pr of prs) {
       const pullRequest = await PullRequest.updateOrCreate(
         {
-          id: pr.pullRequestId,
+          pullRequestId: pr.pullRequestId,
+          orgId: org.id,
         },
         {
-          id: pr.pullRequestId,
+          pullRequestId: pr.pullRequestId,
+          orgId: org.id,
           repositoryId: pr.repository?.id,
           repositoryName: pr.repository?.name,
           projectId: pr.repository?.project?.id,
@@ -129,32 +134,40 @@ export default class PullrequestsController {
   /**
    * Display a list of filters
    */
-  async filters({}: HttpContext) {
+  async filters({ auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const creators = await PullRequest.query()
+      .where('orgId', org.id)
       .distinct('creatorName')
       .select('creatorName')
       .orderBy('creatorName', 'asc')
     const repos = await PullRequest.query()
+      .where('orgId', org.id)
       .distinct('repositoryName', 'repositoryId')
       .select('repositoryName', 'repositoryId')
       .orderBy('repositoryName', 'asc')
     const projects = await PullRequest.query()
+      .where('orgId', org.id)
       .distinct('projectName', 'projectId')
       .select('projectName', 'projectId')
       .orderBy('projectName', 'asc')
     const sources = await PullRequest.query()
+      .where('orgId', org.id)
       .distinct('sourceRefName')
       .select('sourceRefName')
       .orderBy('sourceRefName', 'asc')
     const targets = await PullRequest.query()
+      .where('orgId', org.id)
       .distinct('targetRefName')
       .select('targetRefName')
       .orderBy('targetRefName', 'asc')
     const statuses = await PullRequest.query()
+      .where('orgId', org.id)
       .distinct('status')
       .select('status')
       .orderBy('status', 'asc')
     const mergeStatus = await PullRequest.query()
+      .where('orgId', org.id)
       .distinct('mergeStatus')
       .select('mergeStatus')
       .orderBy('mergeStatus', 'asc')
