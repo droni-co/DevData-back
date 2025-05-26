@@ -7,19 +7,21 @@ import {
 } from 'azure-devops-node-api/interfaces/GitInterfaces.js'
 import Repo from '#models/repo'
 import Commit from '#models/commit'
+import Org from '#models/org'
 
 export default class CommitsController {
   /**
    * Display a list of resource
    */
-  async index({ request }: HttpContext) {
+  async index({ request, auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const page = request.input('page', 1)
     const perPage = request.input('perPage', 20)
     const q = request.input('q', '')
     const repositoryId = request.input('repositoryId', '')
     const projectId = request.input('projectId', '')
     const authorEmail = request.input('authorEmail', '')
-    const query = Commit.query()
+    const query = Commit.query().where('orgId', org.id)
     if (repositoryId) {
       query.where('repository_id', repositoryId)
     }
@@ -44,16 +46,17 @@ export default class CommitsController {
   /**
    * Import all resources
    */
-  async import({ params, request }: HttpContext) {
+  async import({ params, request, auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const allCommits: Commit[] = []
     const projectId = params.id
 
     // Calcular fecha por defecto: hoy menos 30 días
     const defaultMinTime = DateTime.now().minus({ days: 30 }).toISO()
     const minTime = request.input('minTime', defaultMinTime)
-    const repo = await Repo.findOrFail(projectId)
+    const repo = await Repo.query().where('repoId', projectId).where('orgId', org.id).firstOrFail()
 
-    const azureApiService = await AzureApiService.connection()
+    const azureApiService = await AzureApiService.connection(org)
     const gitApi = await azureApiService.getGitApi()
     const fromDate = new Date(minTime)
     // add 1 day to from date
@@ -65,7 +68,7 @@ export default class CommitsController {
       //toDate: toDate.toISOString().substring(0, 10),
     }
 
-    const commits = await gitApi.getCommits(repo.id, criteria)
+    const commits = await gitApi.getCommits(repo.repoId, criteria)
 
     if (commits && commits.length > 0) {
       // Buscar los ya existentes para evitar duplicados
@@ -74,7 +77,7 @@ export default class CommitsController {
           'commit_id',
           commits.map((c) => String(c.commitId))
         )
-        .where('repository_id', repo.id)
+        .where('repository_id', repo.repoId)
         .select('commit_id')
       const existingIds = new Set(existing.map((c) => c.commitId))
       commits.forEach((commit: GitCommitRef) => {
@@ -84,8 +87,9 @@ export default class CommitsController {
           !existingIds.has(String(commit.commitId))
         ) {
           const commitInstance = new Commit()
+          commitInstance.orgId = org.id
           commitInstance.commitId = String(commit.commitId)
-          commitInstance.repositoryId = repo.id
+          commitInstance.repositoryId = repo.repoId
           commitInstance.repositoryName = repo.name
           commitInstance.projectId = repo.projectId
           commitInstance.projectName = repo.projectName
@@ -132,12 +136,15 @@ export default class CommitsController {
   /**
    * Get unique projectName, authorEmail, and committerEmail
    */
-  async filters({}: HttpContext) {
+  async filters({ auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const projects = await Commit.query()
+      .where('orgId', org.id)
       .distinct('projectName', 'projectId')
       .select('projectName', 'projectId')
       .orderBy('projectName')
     const authors = await Commit.query()
+      .where('orgId', org.id)
       .distinct('authorName', 'authorEmail')
       .select('authorName', 'authorEmail')
       .orderBy('authorName')
