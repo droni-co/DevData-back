@@ -34,7 +34,7 @@ router
     router.get('/repos/filters', [ReposController, 'filters'])
     router.get('/repos', [ReposController, 'index'])
     router.get('/secrets/import/:id', [SecretsController, 'importDetails'])
-    router.get('/secrets/import', [SecretsController, 'import'])
+    router.get('/secrets/:vaultName/import', [SecretsController, 'import'])
     router.resource('secrets', SecretsController).apiOnly()
     router.get('/commits/import/:id', [CommitsController, 'import'])
     router.get('/commits/filters', [CommitsController, 'filters'])
