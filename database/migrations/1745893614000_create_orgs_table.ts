@@ -6,6 +6,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.uuid('id').primary().notNullable()
+      table.string('secret', 64).notNullable().unique()
       table.string('name', 100).notNullable()
       table.string('azure_org_url').notNullable()
       table.string('azure_personal_access_token').notNullable()

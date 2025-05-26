@@ -6,6 +6,9 @@ export default class Pullrequest extends BaseModel {
   declare id: number
 
   @column()
+  declare orgId: string
+
+  @column()
   declare pullRequestId: number
 
   @column()

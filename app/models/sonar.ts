@@ -6,6 +6,9 @@ export default class Sonar extends BaseModel {
   declare id: number
 
   @column()
+  declare orgId: string
+
+  @column()
   declare key: string
 
   @column()

@@ -6,6 +6,9 @@ export default class Secret extends BaseModel {
   declare id: number
 
   @column()
+  declare orgId: string
+
+  @column()
   declare keyvault: string
 
   @column()

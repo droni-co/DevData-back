@@ -6,6 +6,9 @@ export default class Commit extends BaseModel {
   declare id: number
 
   @column()
+  declare orgId: string
+
+  @column()
   declare commitId: string
 
   @column()

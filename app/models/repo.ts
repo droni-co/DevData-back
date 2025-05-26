@@ -7,6 +7,9 @@ export default class Repo extends BaseModel {
   declare id: crypto.UUID
 
   @column()
+  declare orgId: string
+
+  @column()
   declare projectId: crypto.UUID
 
   @column()
