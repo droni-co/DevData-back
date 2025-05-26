@@ -2,12 +2,13 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Repo from '#models/repo'
 import { AzureApiService } from '../../services/devops.js'
 import { UUID } from 'node:crypto'
+import Org from '#models/org'
 
 export default class ReposController {
   /**
    * Display a list of resource
    */
-  async index({ request }: HttpContext) {
+  async index({ request, auth }: HttpContext) {
     const page = request.input('page', 1)
     const perPage = request.input('perPage', 20)
     const q = request.input('q', '')
@@ -15,7 +16,7 @@ export default class ReposController {
     const qPackage = request.input('qPackage', '')
     const isApi = request.input('isApi', '')
     const isExp = request.input('isExp', '')
-    const query = Repo.query()
+    const query = Repo.query().where('orgId', auth.user!.orgId)
     if (projectId) {
       query.where('project_id', projectId)
     }
@@ -48,18 +49,20 @@ export default class ReposController {
   /**
    * Import all resources
    */
-  async import({}: HttpContext) {
-    const azureApiService = await AzureApiService.connection()
+  async import({ auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
+    const azureApiService = await AzureApiService.connection(org)
     const gitApi = await azureApiService.getGitApi()
     const repositories = await gitApi.getRepositories()
 
     repositories.forEach(async (repo) => {
       Repo.firstOrCreate(
         {
-          id: repo.id as UUID,
+          repoId: repo.id as UUID,
+          orgId: auth.user!.orgId,
         },
         {
-          id: repo.id as UUID,
+          repoId: repo.id as UUID,
           projectId: repo.project?.id as UUID,
           projectName: repo.project?.name,
           name: repo.name,
@@ -80,10 +83,11 @@ export default class ReposController {
   /**
    * Import detail resource
    */
-  async importDetails({ params }: HttpContext) {
+  async importDetails({ params, auth }: HttpContext) {
     const { id } = params
     const repo = await Repo.findOrFail(id)
-    const azureApiService = await AzureApiService.connection()
+    const org = await Org.findOrFail(auth.user!.orgId)
+    const azureApiService = await AzureApiService.connection(org)
     const gitApi = await azureApiService.getGitApi()
     const filePackage = await gitApi.getItemContent(id, 'package.json')
     const filePipeline = await gitApi.getItemContent(id, 'azure-pipelines.yml')
@@ -113,8 +117,10 @@ export default class ReposController {
   /**
    * Get unique project names
    */
-  async filters({}: HttpContext) {
+  async filters({ auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const projects = await Repo.query()
+      .where('orgId', org.id)
       .distinct('projectName', 'projectId')
       .select('projectName', 'projectId')
       .orderBy('projectName', 'asc')

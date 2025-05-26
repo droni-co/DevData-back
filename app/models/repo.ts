@@ -4,7 +4,10 @@ import * as crypto from 'node:crypto'
 
 export default class Repo extends BaseModel {
   @column({ isPrimary: true })
-  declare id: crypto.UUID
+  declare id: number
+
+  @column()
+  declare repoId: crypto.UUID
 
   @column()
   declare orgId: string
