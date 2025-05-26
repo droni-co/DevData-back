@@ -1,9 +1,11 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Sonar from '#models/sonar'
 import { DateTime } from 'luxon'
+import Org from '#models/org'
 
 export default class SonarsController {
-  async index({ request }: HttpContext) {
+  async index({ request, auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
     const page = request.input('page', 1)
     const perPage = request.input('perPage', 20)
     const q = request.input('q', '')
@@ -13,7 +15,7 @@ export default class SonarsController {
     const status = request.input('status', '')
     const type = request.input('type', '')
 
-    const query = Sonar.query()
+    const query = Sonar.query().where('orgId', org.id)
     if (q) {
       query.where((sub) => {
         sub
@@ -34,9 +36,10 @@ export default class SonarsController {
     return results
   }
 
-  async import({}: HttpContext) {
-    const SONAR_TOKEN = process.env.SONAR_TOKEN || ''
-    const ORGANIZATION = process.env.SONAR_ORG || 'YOUR_SONAR_ORGANIZATION'
+  async import({ auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
+    const SONAR_TOKEN = org.sonarToken
+    const ORGANIZATION = org.sonarOrg
     const url = `https://sonarcloud.io/api/issues/search?organization=${ORGANIZATION}&ps=500`
 
     const response = await fetch(url, {
@@ -53,8 +56,12 @@ export default class SonarsController {
     for (const issue of data.issues) {
       const hashValue = issue.hash ? issue.hash : 'no-hash'
       const sonar = await Sonar.updateOrCreate(
-        { key: issue.key },
         {
+          key: issue.key,
+          orgId: org.id,
+        },
+        {
+          orgId: org.id,
           key: issue.key,
           rule: issue.rule,
           severity: issue.severity,
@@ -88,12 +95,19 @@ export default class SonarsController {
     return { imported: results.length }
   }
 
-  async filters({}: HttpContext) {
-    const rules = await Sonar.query().distinct('rule').select('rule')
-    const projects = await Sonar.query().distinct('project').select('project')
-    const severities = await Sonar.query().distinct('severity').select('severity')
-    const statuses = await Sonar.query().distinct('status').select('status')
-    const types = await Sonar.query().distinct('type').select('type')
+  async filters({ auth }: HttpContext) {
+    const org = await Org.findOrFail(auth.user!.orgId)
+    const rules = await Sonar.query().where('orgId', org.id).distinct('rule').select('rule')
+    const projects = await Sonar.query()
+      .where('orgId', org.id)
+      .distinct('project')
+      .select('project')
+    const severities = await Sonar.query()
+      .where('orgId', org.id)
+      .distinct('severity')
+      .select('severity')
+    const statuses = await Sonar.query().where('orgId', org.id).distinct('status').select('status')
+    const types = await Sonar.query().where('orgId', org.id).distinct('type').select('type')
     return {
       rule: rules.map((row) => row.rule).filter((v) => !!v),
       project: projects.map((row) => row.project).filter((v) => !!v),

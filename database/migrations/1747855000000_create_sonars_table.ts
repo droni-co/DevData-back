@@ -7,7 +7,8 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.uuid('org_id').notNullable().references('id').inTable('orgs').onDelete('CASCADE')
-      table.string('key').unique().notNullable()
+      table.string('key').notNullable()
+      table.unique(['key', 'org_id'])
       table.string('rule').notNullable()
       table.string('severity').notNullable()
       table.string('component').notNullable()

@@ -79,7 +79,6 @@ export default class PullrequestsController {
       // maxTime: toDate,
       // targetRefName: 'refs/heads/qa'
     }
-    console.log('ProjectId', projectId)
     const prs = await gitApi.getPullRequestsByProject(projectId, criteria)
 
     // Cambiar forEach por for...of para evitar deadlocks
