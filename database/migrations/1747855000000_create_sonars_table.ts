@@ -6,6 +6,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
+      table.uuid('org_id').notNullable().references('id').inTable('orgs').onDelete('CASCADE')
       table.string('key').unique().notNullable()
       table.string('rule').notNullable()
       table.string('severity').notNullable()

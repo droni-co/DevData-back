@@ -13,6 +13,7 @@ const SecretsController = () => import('#controllers/secrets_controller')
 const CommitsController = () => import('#controllers/commits_controller')
 const PullRequestsController = () => import('#controllers/pullrequests_controller')
 const SonarsController = () => import('#controllers/sonars_controller')
+const ReportsController = () => import('#controllers/reports_controller')
 
 router.get('/', async () => {
   return {
@@ -36,3 +37,12 @@ router.get('/pullrequests', [PullRequestsController, 'index'])
 router.get('/sonars/import', [SonarsController, 'import'])
 router.get('/sonars/filters', [SonarsController, 'filters'])
 router.get('/sonars', [SonarsController, 'index'])
+
+// Reportes Sonar
+router.get('/reports/sonar/issues-by-type', [ReportsController, 'sonar_issuesByType'])
+router.get('/reports/sonar/issues-by-severity', [ReportsController, 'sonar_issuesBySeverity'])
+router.get('/reports/sonar/open-vs-closed', [ReportsController, 'sonar_openVsClosed'])
+router.get('/reports/sonar/issues-by-project', [ReportsController, 'sonar_issuesByProject'])
+router.get('/reports/sonar/top-rules', [ReportsController, 'sonar_topRules'])
+router.get('/reports/sonar/security-issues', [ReportsController, 'sonar_securityIssues'])
+router.get('/reports/sonar/issues-over-time', [ReportsController, 'sonar_issuesOverTime'])

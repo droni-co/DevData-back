@@ -6,6 +6,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.integer('id')
+      table.uuid('org_id').notNullable().references('id').inTable('orgs').onDelete('CASCADE')
       table.uuid('repository_id').notNullable()
       table.string('repository_name', 200).notNullable()
       table.uuid('project_id').notNullable()
@@ -28,23 +29,3 @@ export default class extends BaseSchema {
     this.schema.dropTable(this.tableName)
   }
 }
-/*
-CREATE TABLE reports_pullrequests (
-  id INT PRIMARY KEY,
-  repositoryId UNIQUEIDENTIFIER NOT NULL,
-  repositoryName NVARCHAR(200) NOT NULL,
-  projectId UNIQUEIDENTIFIER NOT NULL,
-  projectName NVARCHAR(200) NOT NULL,
-  creatorId UNIQUEIDENTIFIER NOT NULL,
-  creatorName NVARCHAR(200) NOT NULL,
-  status INT NOT NULL,
-  creationDate DATETIME2 NOT NULL,
-  closedDate DATETIME2 NULL,
-  title NVARCHAR(500) NOT NULL,
-  description NVARCHAR(MAX) NULL,
-  sourceRefName NVARCHAR(200) NOT NULL,
-  targetRefName NVARCHAR(200) NOT NULL,
-  mergeStatus INT NOT NULL,
-  completionQueueTime DATETIME2 NULL
-);
-*/
