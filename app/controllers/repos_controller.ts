@@ -86,11 +86,11 @@ export default class ReposController {
   async importDetails({ params, auth }: HttpContext) {
     const { id } = params
     const org = await Org.findOrFail(auth.user!.orgId)
-    const repo = await Repo.query().where('repoId', id).where('orgId', org.id).firstOrFail()
+    const repo = await Repo.query().where('id', id).where('orgId', org.id).firstOrFail()
     const azureApiService = await AzureApiService.connection(org)
     const gitApi = await azureApiService.getGitApi()
-    const filePackage = await gitApi.getItemContent(id, 'package.json')
-    const filePipeline = await gitApi.getItemContent(id, 'azure-pipelines.yml')
+    const filePackage = await gitApi.getItemContent(repo.repoId, 'package.json')
+    const filePipeline = await gitApi.getItemContent(repo.repoId, 'azure-pipelines.yml')
 
     let contentPackage = ''
     for await (const chunk of filePackage) {
