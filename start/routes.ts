@@ -19,7 +19,9 @@ const ReportsController = () => import('#controllers/reports_controller')
 
 router.get('/', async () => {
   return {
-    hello: 'world',
+    version: '1.0.0',
+    name: 'DevOps API',
+    description: 'API for DevOps management',
   }
 })
 router.post('/auth/register', [AuthController, 'register'])
