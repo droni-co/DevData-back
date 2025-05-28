@@ -16,6 +16,7 @@ const CommitsController = () => import('#controllers/commits_controller')
 const PullRequestsController = () => import('#controllers/pullrequests_controller')
 const SonarsController = () => import('#controllers/sonars_controller')
 const ReportsController = () => import('#controllers/reports_controller')
+const CopilotsController = () => import('#controllers/copilots_controller')
 
 router.get('/', async () => {
   return {
@@ -47,6 +48,7 @@ router
     router.get('/sonars/import', [SonarsController, 'import'])
     router.get('/sonars/filters', [SonarsController, 'filters'])
     router.get('/sonars', [SonarsController, 'index'])
+    router.get('/copilots/import', [CopilotsController, 'import'])
 
     // Reportes Sonar
     router.get('/reports/sonar/issues-by-type', [ReportsController, 'sonar_issuesByType'])

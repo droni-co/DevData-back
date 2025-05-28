@@ -28,6 +28,9 @@ export default class Org extends BaseModel {
   declare sonarOrg: string
 
   @column()
+  declare copilotToken: string
+
+  @column()
   declare invitations: any | null
 
   @column.dateTime({ autoCreate: true })

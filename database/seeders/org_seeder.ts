@@ -15,6 +15,7 @@ export default class extends BaseSeeder {
     org.azureWorkspaceId = process.env.AZURE_WORKSPACE_ID ?? 'default-workspace-id'
     org.sonarToken = process.env.SONAR_TOKEN ?? 'your-default-sonar-token'
     org.sonarOrg = process.env.SONAR_ORG ?? 'default-sonar-org'
+    org.copilotToken = process.env.COPILOT_TOKEN ?? 'your-default-copilot-token'
 
     await org.save()
   }
