@@ -48,6 +48,7 @@ router
     router.get('/sonars/import', [SonarsController, 'import'])
     router.get('/sonars/filters', [SonarsController, 'filters'])
     router.get('/sonars', [SonarsController, 'index'])
+    router.get('/copilots', [CopilotsController, 'index'])
     router.get('/copilots/import', [CopilotsController, 'import'])
 
     // Reportes Sonar

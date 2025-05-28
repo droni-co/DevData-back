@@ -50,6 +50,9 @@ export default class ReposController {
    * Import all resources
    */
   async import({ auth }: HttpContext) {
+    if (auth.user!.role !== 'admin') {
+      throw new Error('No tienes permisos para importar repositorios')
+    }
     const org = await Org.findOrFail(auth.user!.orgId)
     const azureApiService = await AzureApiService.connection(org)
     const gitApi = await azureApiService.getGitApi()
@@ -84,6 +87,9 @@ export default class ReposController {
    * Import detail resource
    */
   async importDetails({ params, auth }: HttpContext) {
+    if (auth.user!.role !== 'admin') {
+      throw new Error('No tienes permisos para importar repositorios')
+    }
     const { id } = params
     const org = await Org.findOrFail(auth.user!.orgId)
     const repo = await Repo.query().where('repoId', id).where('orgId', org.id).firstOrFail()

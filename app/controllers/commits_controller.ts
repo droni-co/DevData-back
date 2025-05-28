@@ -47,6 +47,9 @@ export default class CommitsController {
    * Import all resources
    */
   async import({ params, request, auth }: HttpContext) {
+    if (auth.user!.role !== 'admin') {
+      throw new Error('No tienes permisos para importar métricas de Commits')
+    }
     const org = await Org.findOrFail(auth.user!.orgId)
     const allCommits: Commit[] = []
     const projectId = params.id

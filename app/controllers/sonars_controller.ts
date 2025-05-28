@@ -37,6 +37,9 @@ export default class SonarsController {
   }
 
   async import({ auth }: HttpContext) {
+    if (auth.user!.role !== 'admin') {
+      throw new Error('No tienes permisos para importar métricas de Sonar')
+    }
     const org = await Org.findOrFail(auth.user!.orgId)
     const SONAR_TOKEN = org.sonarToken
     const ORGANIZATION = org.sonarOrg
